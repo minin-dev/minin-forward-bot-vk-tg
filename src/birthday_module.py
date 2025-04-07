@@ -1,3 +1,8 @@
+# Copyright (c) 2023 [Eiztrips]
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
 import datetime, requests, pytz, time
 from src.config.config import token, chat_id, bd_dates
 from src.console.console_messages import send_message

@@ -1,3 +1,8 @@
+# Copyright (c) 2023 [Eiztrips]
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
 import requests, json, vk_api
 from src.config.config import token, chat_id
 from src.console.console_messages import send_message

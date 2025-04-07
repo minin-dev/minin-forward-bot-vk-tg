@@ -1,3 +1,8 @@
+# Copyright (c) 2023 [Eiztrips]
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
 import src.config.config, src.modules.handle_func
 import vk_api, datetime
 from vk_api.bot_longpoll import VkBotLongPoll
