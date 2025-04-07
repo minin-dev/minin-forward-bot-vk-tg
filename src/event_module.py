@@ -1,8 +1,8 @@
-import src.config, src.handle_func
+import src.config.config, src.modules.handle_func
 import vk_api, datetime
 from vk_api.bot_longpoll import VkBotLongPoll
-from src.config import token, chat_id
-from src.console_messages import hello_message, event_message
+from src.config.config import token, chat_id
+from src.console.console_messages import hello_message, event_message
 
 vk_session = vk_api.VkApi(token = token['vk'])
 vk = vk_session.get_api()
@@ -25,7 +25,7 @@ for event in longpoll.listen():
             for attachment in message["attachments"]:
                 if "photo" in attachment:
                     check_attacment = True
-            if check_attacment == False: src.handle_func.handle_text(message_package['author']+" ✉", message["text"])
-        src.handle_func.handler(message)
+            if check_attacment == False: src.modules.handle_func.handle_text(message_package['author'] + " ✉", message["text"])
+        src.modules.handle_func.handler(message)
 
     main_forward(message_package['object'])

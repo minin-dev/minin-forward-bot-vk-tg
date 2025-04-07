@@ -1,6 +1,6 @@
 import datetime, requests, pytz, time
-from src.config import token, chat_id, bd_dates
-from src.console_messages import send_message
+from src.config.config import token, chat_id, bd_dates
+from src.console.console_messages import send_message
 
 telegram_bot_token = token['tg']
 telegram_chat_id = chat_id['tg']
@@ -39,7 +39,7 @@ def birthday(current_date=None):
                         "chat_id": telegram_chat_id,
                         "text": (
                             f"🎉 <b>Сегодня особенный день!</b> 🎉\n\n"
-                            f"Поздравляем с Днём Рождения замечательного человека — <b>{happy_b_day[current_date]}</b>! 🥳🎂\n\n"
+                            f"Поздравляем с Днём Рождения замечательного человека — <b>{bd_dates[current_date]}</b>! 🥳🎂\n\n"
                             f"✨ Желаем вам счастья, крепкого здоровья и исполнения всех желаний!\n"
                             f"🚀 Пусть каждый день приносит радость, новые возможности и только приятные сюрпризы.\n"
                             f"💡 Оставайся таким же ярким, талантливым и неповторимым!\n\n"

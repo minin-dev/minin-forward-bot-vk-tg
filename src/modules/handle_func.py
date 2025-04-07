@@ -1,6 +1,6 @@
 import requests, json, vk_api
-from src.config import token, chat_id
-from src.console_messages import send_message
+from src.config.config import token, chat_id
+from src.console.console_messages import send_message
 
 telegram_bot_token = token['tg']
 telegram_chat_id = chat_id['tg']
