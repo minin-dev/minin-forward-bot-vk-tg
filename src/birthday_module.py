@@ -63,7 +63,7 @@ def birthday(current_date=None):
         content.close()
 
 if __name__ == "__main__":
-    print("Birthday module has been started!")
+    print("Birthday module has been started!", flush=True)
     while True:
         birthday()
         time.sleep(3600*24)

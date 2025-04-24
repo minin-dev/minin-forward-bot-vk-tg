@@ -17,13 +17,13 @@ def terminal_cap_generator():
     return cap
 
 def hello_message(time, tg_chat_id, vk_chat_id):
-    print("\033[1;31m" + terminal_cap_generator() + "\033[0m")
-    print(dev_logo)
-    print(f"\033[32m Hello, I'm bot for forwarding messages from VK to TG.\n Developers: Eiztrips\n Launch time: {time}\n Telegram chat id: {tg_chat_id}\n Vk chat id: {vk_chat_id} \033[0m")
-    print("\033[1;31m" + terminal_cap_generator() + "\033[0m")
+    print("\033[1;31m" + terminal_cap_generator() + "\033[0m", flush=True)
+    print(dev_logo, flush=True)
+    print(f"\033[32m Hello, I'm bot for forwarding messages from VK to TG.\n Developers: Eiztrips\n Launch time: {time}\n Telegram chat id: {tg_chat_id}\n Vk chat id: {vk_chat_id} \033[0m", flush=True)
+    print("\033[1;31m" + terminal_cap_generator() + "\033[0m", flush=True)
 
 def event_message(header, message):
-    print(f"\n\033[1;33m {header} \033[0m\n\n", message)
+    print(f"\n\033[1;33m {header} \033[0m\n\n", message, flush=True)
 
 def send_message(header, message):
-    print(f"\n\033[1;32m {header} \033[0m\n\n", message)
+    print(f"\n\033[1;32m {header} \033[0m\n\n", message, flush=True)
