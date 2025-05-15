@@ -82,3 +82,7 @@ python -m src.event_module
 
 python main.py
 ```
+
+## Лицензия
+
+Проект распространяется под лицензией MIT.
