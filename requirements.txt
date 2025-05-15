@@ -2,3 +2,6 @@ vk_api
 python-telegram-bot
 pytz
 requests
+python-dotenv
+logging
+retrying

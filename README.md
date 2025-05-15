@@ -1,34 +1,6 @@
 # Pim_VK_to_TG
 
-Сервис для передачи сообщений из ВКонтакте в Telegram и отслеживания дней рождения.
-
-## Структура проекта
-
-```
-Pim_VK_to_TG/
-├── .dockerignore        # Файлы, исключаемые из Docker-образа
-├── .gitignore           # Файлы, исключаемые из Git-репозитория
-├── LICENSE              # Лицензия MIT
-├── README.md            # Документация проекта
-├── docker-compose.yml   # Конфигурация Docker Compose
-├── Dockerfile           # Инструкции для сборки Docker-образа
-├── entrypoint.sh        # Точка входа для Docker-контейнера
-├── requirements.txt     # Зависимости Python
-├── data/                # Директория для хранения данных
-└── src/                 # Исходный код проекта
-    ├── __init__.py
-    ├── birthday_module.py  # Модуль обработки дней рождения
-    ├── event_module.py     # Модуль обработки событий VK
-    ├── config/             # Конфигурации приложения
-    │   ├── __init__.py
-    │   └── config.py       # Настройки токенов и ID чатов
-    ├── console/            # Модуль для вывода в консоль
-    │   ├── __init__.py
-    │   └── console_messages.py
-    └── modules/            # Вспомогательные модули
-        ├── __init__.py
-        └── handle_func.py  # Функции обработки сообщений
-```
+Масштабируемый сервис для пересылки сообщений из VK в Telegram.
 
 ## Запуск с помощью Docker
 
@@ -41,14 +13,18 @@ Pim_VK_to_TG/
 ```
 VK_TOKEN=your_vk_token_here
 TG_BOT_TOKEN=your_telegram_bot_token_here
+VK_CHAT_ID=your_vk_chat_id_here
+TG_CHAT_ID=your_telegram_chat_id_here
+```
+
+2. Создайте необходимые директории:
+```bash
+mkdir -p data logs
 ```
 
 ### Сборка и запуск
 ```bash
-# Сборка образа
 docker-compose build
-
-# Запуск контейнеров
 docker-compose up -d
 ```
 
@@ -57,14 +33,33 @@ docker-compose up -d
 - `birthday_module.py` - модуль обработки дней рождения
 - `event_module.py` - модуль обработки событий
 
+### Структура проекта
+```
+/
+├── data/                  # Директория для хранения данных
+├── logs/                  # Директория для логов
+├── src/                   # Исходный код
+│   ├── config/            # Конфигурационные файлы
+│   ├── console/           # Модули для работы с консолью
+│   └── modules/           # Основные модули приложения
+├── .env                   # Файл с переменными окружения
+├── Dockerfile             # Файл для сборки Docker образа
+├── docker-compose.yml     # Конфигурация Docker Compose
+├── requirements.txt       # Зависимости Python
+└── README.md              # Документация проекта
+```
+
 ### Просмотр логов
 ```bash
-# Логи всех контейнеров
 docker-compose logs -f
-
-# Логи конкретного контейнера
 docker-compose logs -f birthday_service
 docker-compose logs -f event_service
+```
+
+### Обновление контейнеров
+```bash
+docker-compose down
+docker-compose up -d --build
 ```
 
 ### Остановка контейнеров
@@ -72,6 +67,18 @@ docker-compose logs -f event_service
 docker-compose down
 ```
 
-## Лицензия
+## Разработка
 
-Этот проект распространяется под лицензией MIT. Подробности смотрите в файле [LICENSE](LICENSE).
+### Установка зависимостей
+```bash
+pip install -r requirements.txt
+```
+
+### Запуск локально
+```bash
+python -m src.birthday_module
+
+python -m src.event_module
+
+python main.py
+```

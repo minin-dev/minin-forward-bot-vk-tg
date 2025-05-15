@@ -27,3 +27,4 @@ def event_message(header, message):
 
 def send_message(header, message):
     print(f"\n\033[1;32m {header} \033[0m\n\n", message, flush=True)
+

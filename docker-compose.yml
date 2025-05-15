@@ -7,10 +7,17 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/app/data
+      - ./logs:/app/logs
       - ./.env:/app/.env
     environment:
       - TZ=Europe/Moscow
     command: ["python", "-m", "src.birthday_module"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/data') else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   event_service:
     build: .
@@ -18,7 +25,14 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/app/data
+      - ./logs:/app/logs
       - ./.env:/app/.env
     environment:
       - TZ=Europe/Moscow
     command: ["python", "-m", "src.event_module"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/data') else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
