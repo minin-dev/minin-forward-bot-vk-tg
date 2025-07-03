@@ -6,9 +6,9 @@ import time
 class BirthdayMetricsClass:
     def __init__(self):
         self.BIRTHDAY_REGISTRY = CollectorRegistry()
-        self.UPTIME = Gauge('uptime_seconds', 'Uptime in seconds', registry=self.BIRTHDAY_REGISTRY)
-        self.STATUS = Enum('status', 'Status of the birthday module', states=['running', 'error'], registry=self.BIRTHDAY_REGISTRY)
-        self.BIRTHDAY_SENT = Counter('birthday_sent', 'Number of birthdays processed', registry=self.BIRTHDAY_REGISTRY)
+        self.UPTIME = Gauge('uptime_seconds', 'Время работы birthday-сервиса', ['type'], registry=self.BIRTHDAY_REGISTRY)
+        self.STATUS = Enum('status', 'Статус birthday-сервиса', states=['running', 'error'], registry=self.BIRTHDAY_REGISTRY)
+        self.BIRTHDAY_SENT = Counter('birthday_sent', 'Количество отправленных поздравлений', registry=self.BIRTHDAY_REGISTRY)
 
         self.ERROR_COUNT = Counter('event_errors_total', 'Ошибок при обработке событий',
                         registry=self.BIRTHDAY_REGISTRY)
@@ -19,8 +19,11 @@ class BirthdayMetricsClass:
 
     def update_uptime(self):
         while True:
-            self.UPTIME.set(time.time() - self.start_time)
-            time.sleep(1)
+            self.UPTIME.labels('seconds').set(time.time() - self.start_time)
+            self.UPTIME.labels('minutes').set((time.time() - self.start_time) / 60)
+            self.UPTIME.labels('hours').set((time.time() - self.start_time) / 3600)
+            self.UPTIME.labels('days').set((time.time() - self.start_time) / 86400)
+            time.sleep(5)
 
     def update_status(self, status='running'):
         if status in self.STATUS._states:
@@ -55,10 +58,10 @@ class EventMetricsClass:
 
         self.EVENT_COUNT = Counter('event_processed_total', 'Обработано событий всего',
                         registry=self.EVENTS_REGISTRY)
-        self.METHOD_PROCESSING_TIME = Gauge('function_processing_seconds', 'Среднее время обработки метода',
-                        ['function'],
+        self.METHOD_PROCESSING_TIME = Gauge('method_processing_seconds', 'Среднее время обработки метода',
+                        ['method'],
                         registry=self.EVENTS_REGISTRY)
-        self.EVENT_PROCESSING_TIME = Gauge('function_processing_seconds', 'Среднее время обработки события',
+        self.EVENT_PROCESSING_TIME = Gauge('event_processing_seconds', 'Среднее время обработки события',
                         registry=self.EVENTS_REGISTRY)
         self.TG_MESSAGES_SENT = Counter('tg_messages_sent_total', 'Отправлено сообщений в Telegram',
                         registry=self.EVENTS_REGISTRY)
@@ -76,8 +79,11 @@ class EventMetricsClass:
 
     def update_uptime(self):
         while True:
-            self.UPTIME.set(time.time() - self.start_time)
-            time.sleep(1)
+            self.UPTIME.labels('seconds').set(time.time() - self.start_time)
+            self.UPTIME.labels('minutes').set((time.time() - self.start_time) / 60)
+            self.UPTIME.labels('hours').set((time.time() - self.start_time) / 3600)
+            self.UPTIME.labels('days').set((time.time() - self.start_time) / 86400)
+            time.sleep(5)
 
     def update_status(self, status='running'):
         if status in self.STATUS._states:
@@ -86,12 +92,6 @@ class EventMetricsClass:
                 time.sleep(100)
         else:
             raise ValueError(f"Invalid status: {status}")
-
-    def update_time(self):
-        self.UPTIME.labels('seconds').set(time.time() - self.start_time)
-        self.UPTIME.labels('minutes').set((time.time() - self.start_time) / 60)
-        self.UPTIME.labels('hours').set((time.time() - self.start_time) / 3600)
-        self.UPTIME.labels('days').set((time.time() - self.start_time) / 86400)
 
     def handle_error(self, error_message):
         self.ERROR_COUNT.inc()
@@ -118,7 +118,6 @@ class EventMetricsClass:
 
     def start_metrics(self):
         start_http_server(8000, registry=self.EVENTS_REGISTRY)
-        self.RECONNECTS.inc()
         threading.Thread(target=self.update_uptime, daemon=True).start()
         threading.Thread(target=self.update_status, daemon=True).start()
 
