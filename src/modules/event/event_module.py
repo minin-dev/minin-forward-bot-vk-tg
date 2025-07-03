@@ -43,6 +43,7 @@ def main():
                 for event in longpoll.listen():
                     try:
                         if event.type == VkBotEventType.MESSAGE_NEW:
+                            start = time.time()
                             EventMetrics.EVENT_COUNT.inc()
                             message_counter += 1
 
@@ -69,6 +70,17 @@ def main():
                                 handler(message)
 
                             main_forward(message_package['object'])
+
+                            # TODO: вынести нахрен в метриксточкапай
+                            elapsed = time.time() - start
+                            fname = "main_forward"
+                            if fname not in EventMetrics._timing_data:
+                                EventMetrics._timing_data[fname] = [0.0, 0]
+                            EventMetrics._timing_data[fname][0] += elapsed
+                            EventMetrics._timing_data[fname][1] += 1
+                            avg = EventMetrics._timing_data[fname][0] / EventMetrics._timing_data[fname][1]
+                            EventMetrics.METHOD_PROCESSING_TIME.labels(function=fname).set(avg)
+
                     except Exception as e:
                         EventMetrics.handle_error(f"Error processing event: {e}")
                         logger.error(f"Error processing event: {e}")

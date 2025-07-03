@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 processed_messages = set()
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_text(user, text, mode=None):
     try:
         if mode == None:
@@ -53,12 +53,12 @@ def handle_text(user, text, mode=None):
         EventMetrics.handle_error(f"handle_text error: {e}")
         logger.error(f"Error in handle_text: {e}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def get_user_name(message):
     message_author_info = vk.users.get(user_ids=message['from_id'])
     return f"{message_author_info[0]['first_name']} {message_author_info[0]['last_name']}"
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_photo(message):
     attachments = message['attachments']
     media_group = []
@@ -82,7 +82,7 @@ def handle_photo(message):
         else:
             EventMetrics.handle_error(f"Failed to send media group: {response.status_code} - {response.text}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_video(message):
     attachments = message['attachments']
     for attachment in attachments:
@@ -103,7 +103,7 @@ def handle_video(message):
             else:
                 EventMetrics.handle_error(f"Failed to send video message: {response.status_code} - {response.text}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_audio_message(message):
     attachments = message['attachments']
     for attachment in attachments:
@@ -123,7 +123,7 @@ def handle_audio_message(message):
             else:
                 EventMetrics.handle_error(f"Failed to send audio message: {response.status_code} - {response.text}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_audio(message):
     attachments = message['attachments']
     for attachment in attachments:
@@ -142,7 +142,7 @@ def handle_audio(message):
             else:
                 EventMetrics.handle_error(f"Failed to send audio: {response.status_code} - {response.text}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_doc(message):
     attachments = message['attachments']
     for attachment in attachments:
@@ -164,7 +164,7 @@ def handle_doc(message):
             else:
                 EventMetrics.handle_error(f"Failed to send document message: {response.status_code} - {response.text}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_sticker(message):
     message_author_info = vk.users.get(user_ids=message['from_id'])
     message_author = f"{message_author_info[0]['first_name']} {message_author_info[0]['last_name']}"
@@ -190,7 +190,7 @@ def handle_sticker(message):
                     else:
                         EventMetrics.handle_error(f"Failed to send sticker: {response.status_code} - {response.text}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_poll(message):
     attachments = message['attachments']
     for attachment in attachments:
@@ -210,7 +210,7 @@ def handle_poll(message):
             else:
                 EventMetrics.handle_error(f"Failed to send poll message: {response.status_code} - {response.text}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_wall(message):
     attachments = message['attachments']
     for attachment in attachments:
@@ -225,7 +225,7 @@ def handle_wall(message):
                 handle_text(group_name+" ☆", "")
             EventMetrics.ATTACHMENTS.labels('WALL').inc()
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_link(message):
     try:
         message_id = f"link_{message.get('date', '')}_{message.get('conversation_message_id', '')}"
@@ -266,27 +266,37 @@ def handle_link(message):
         EventMetrics.handle_error(f"handle_link error: {e}")
         logger.error(f"Error in handle_link: {e}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handler(message, skip_reply=False):
-
     try:
-        handle_photo(message)
-        handle_video(message)
-        handle_audio_message(message)
-        handle_audio(message)
-        handle_doc(message)
-        handle_sticker(message)
-        handle_poll(message)
-        handle_wall(message)
-        handle_link(message)
+        attachments = message.get('attachments', [])
 
-        if not skip_reply:
+        if any(att.get('type') == 'photo' for att in attachments):
+            handle_photo(message)
+        if any(att.get('type') == 'video' for att in attachments):
+            handle_video(message)
+        if any(att.get('type') == 'audio_message' for att in attachments):
+            handle_audio_message(message)
+        if any(att.get('type') == 'audio' for att in attachments):
+            handle_audio(message)
+        if any(att.get('type') == 'doc' for att in attachments):
+            handle_doc(message)
+        if any(att.get('type') == 'sticker' for att in attachments):
+            handle_sticker(message)
+        if any(att.get('type') == 'poll' for att in attachments):
+            handle_poll(message)
+        if any(att.get('type') == 'wall' for att in attachments):
+            handle_wall(message)
+        if any(att.get('type') == 'link' for att in attachments):
+            handle_link(message)
+
+        if not skip_reply and "fwd_messages" in message and message["fwd_messages"]:
             handle_reply(message)
     except Exception as e:
         EventMetrics.handle_error(f"handler error: {e}")
         logger.error(f"Error in main handler: {e}")
 
-@EventMetrics.histogram_timer()
+@EventMetrics.average_processing_time_decorator()
 def handle_reply(message):
     try:
         if "fwd_messages" in message and message["fwd_messages"]:

@@ -47,17 +47,18 @@ class EventMetricsClass:
         self.EVENTS_REGISTRY = CollectorRegistry()
 
         self.UPTIME = Gauge('event_uptime_seconds', 'Время работы event-сервиса',
-                        registry=self.EVENTS_REGISTRY)
-        self.RECONNECTS = Counter('vk_reconnects_total', 'Переподключения к VK API',
+                        ['type'],
                         registry=self.EVENTS_REGISTRY)
         self.STATUS = Enum('event_status', 'Статус event-сервиса',
                         states=['running', 'error'],
                         registry=self.EVENTS_REGISTRY)
 
-        self.EVENT_COUNT = Counter('event_processed_total', 'Обработано событий',
+        self.EVENT_COUNT = Counter('event_processed_total', 'Обработано событий всего',
                         registry=self.EVENTS_REGISTRY)
-        self.PROCESSING_TIME = Histogram('event_processing_seconds', 'Время обработки события',
+        self.METHOD_PROCESSING_TIME = Gauge('function_processing_seconds', 'Среднее время обработки метода',
                         ['function'],
+                        registry=self.EVENTS_REGISTRY)
+        self.EVENT_PROCESSING_TIME = Gauge('function_processing_seconds', 'Среднее время обработки события',
                         registry=self.EVENTS_REGISTRY)
         self.TG_MESSAGES_SENT = Counter('tg_messages_sent_total', 'Отправлено сообщений в Telegram',
                         registry=self.EVENTS_REGISTRY)
@@ -71,6 +72,7 @@ class EventMetricsClass:
                         registry=self.EVENTS_REGISTRY)
 
         self.start_time = time.time()
+        self._timing_data = {}
 
     def update_uptime(self):
         while True:
@@ -85,19 +87,32 @@ class EventMetricsClass:
         else:
             raise ValueError(f"Invalid status: {status}")
 
+    def update_time(self):
+        self.UPTIME.labels('seconds').set(time.time() - self.start_time)
+        self.UPTIME.labels('minutes').set((time.time() - self.start_time) / 60)
+        self.UPTIME.labels('hours').set((time.time() - self.start_time) / 3600)
+        self.UPTIME.labels('days').set((time.time() - self.start_time) / 86400)
+
     def handle_error(self, error_message):
         self.ERROR_COUNT.inc()
         self.LAST_ERROR.info({'message': error_message, 'time': time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())})
         self.STATUS.state('error')
 
-    def histogram_timer(self):
+    def average_processing_time_decorator(self):
         def decorator(func):
             def wrapper(*args, **kwargs):
                 start = time.time()
                 try:
                     return func(*args, **kwargs)
                 finally:
-                    self.PROCESSING_TIME.labels(function=func.__name__).observe(time.time() - start)
+                    elapsed = time.time() - start
+                    fname = func.__name__
+                    if fname not in self._timing_data:
+                        self._timing_data[fname] = [0.0, 0]
+                    self._timing_data[fname][0] += elapsed
+                    self._timing_data[fname][1] += 1
+                    avg = self._timing_data[fname][0] / self._timing_data[fname][1]
+                    self.METHOD_PROCESSING_TIME.labels(function=fname).set(avg)
             return wrapper
         return decorator
 
