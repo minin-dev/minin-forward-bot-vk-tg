@@ -6,7 +6,7 @@ import time
 class BirthdayMetricsClass:
     def __init__(self):
         self.BIRTHDAY_REGISTRY = CollectorRegistry()
-        self.UPTIME = Gauge('uptime_seconds', 'Время работы birthday-сервиса', ['type'], registry=self.BIRTHDAY_REGISTRY)
+        self.UPTIME = Gauge('uptime', 'Время работы birthday-сервиса', ['type'], registry=self.BIRTHDAY_REGISTRY)
         self.STATUS = Enum('status', 'Статус birthday-сервиса', states=['running', 'error'], registry=self.BIRTHDAY_REGISTRY)
         self.BIRTHDAY_SENT = Counter('birthday_sent', 'Количество отправленных поздравлений', registry=self.BIRTHDAY_REGISTRY)
 
@@ -19,10 +19,15 @@ class BirthdayMetricsClass:
 
     def update_uptime(self):
         while True:
-            self.UPTIME.labels('seconds').set(time.time() - self.start_time)
-            self.UPTIME.labels('minutes').set((time.time() - self.start_time) / 60)
-            self.UPTIME.labels('hours').set((time.time() - self.start_time) / 3600)
-            self.UPTIME.labels('days').set((time.time() - self.start_time) / 86400)
+            elapsed = int(time.time() - self.start_time)
+            seconds = elapsed % 60
+            minutes = (elapsed // 60) % 60
+            hours = (elapsed // 3600) % 24
+            days = elapsed // 86400
+            self.UPTIME.labels('seconds').set(seconds)
+            self.UPTIME.labels('minutes').set(minutes)
+            self.UPTIME.labels('hours').set(hours)
+            self.UPTIME.labels('days').set(days)
             time.sleep(5)
 
     def update_status(self, status='running'):
@@ -49,10 +54,10 @@ class EventMetricsClass:
     def __init__(self):
         self.EVENTS_REGISTRY = CollectorRegistry()
 
-        self.UPTIME = Gauge('event_uptime_seconds', 'Время работы event-сервиса',
+        self.UPTIME = Gauge('uptime', 'Время работы event-сервиса',
                         ['type'],
                         registry=self.EVENTS_REGISTRY)
-        self.STATUS = Enum('event_status', 'Статус event-сервиса',
+        self.STATUS = Enum('status', 'Статус event-сервиса',
                         states=['running', 'error'],
                         registry=self.EVENTS_REGISTRY)
 
@@ -79,10 +84,15 @@ class EventMetricsClass:
 
     def update_uptime(self):
         while True:
-            self.UPTIME.labels('seconds').set(time.time() - self.start_time)
-            self.UPTIME.labels('minutes').set((time.time() - self.start_time) / 60)
-            self.UPTIME.labels('hours').set((time.time() - self.start_time) / 3600)
-            self.UPTIME.labels('days').set((time.time() - self.start_time) / 86400)
+            elapsed = int(time.time() - self.start_time)
+            seconds = elapsed % 60
+            minutes = (elapsed // 60) % 60
+            hours = (elapsed // 3600) % 24
+            days = elapsed // 86400
+            self.UPTIME.labels('seconds').set(seconds)
+            self.UPTIME.labels('minutes').set(minutes)
+            self.UPTIME.labels('hours').set(hours)
+            self.UPTIME.labels('days').set(days)
             time.sleep(5)
 
     def update_status(self, status='running'):
