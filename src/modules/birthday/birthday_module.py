@@ -17,6 +17,7 @@ if __name__ == "__main__":
 
 from src.config.config import token, chat_id, bd_dates
 from src.console.console_messages import send_message
+from src.modules.metrics import BirthdayMetrics
 
 telegram_bot_token = token['tg']
 telegram_chat_id = chat_id['tg']
@@ -29,7 +30,6 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def ensure_directory_exists(path):
-    """Ensure that directory exists, create if not"""
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
 def birthday(current_date=None):
@@ -66,6 +66,13 @@ def birthday(current_date=None):
                             },
                             timeout=10
                         )
+
+                    if response.status_code == 200:
+                        BirthdayMetrics.BIRTHDAY_SENT.inc()
+                    else:
+                        BirthdayMetrics.handle_error()
+                        logger.error(f"Failed to send birthday message: {response.text}")
+
                     
                 else: 
                     response = requests.post(
@@ -87,15 +94,23 @@ def birthday(current_date=None):
                 
                 send_message("BIRTHDAY_MODULE_RESPONSE", response.json())
 
+                if response.status_code == 200:
+                    BirthdayMetrics.BIRTHDAY_SENT.inc()
+                else:
+                    BirthdayMetrics.handle_error()
+                    logger.error(f"Failed to send birthday message: {response.text}")
+
                 content.seek(0)
                 content.write(current_date)
                 content.truncate()
 
     except Exception as e:
+        BirthdayMetrics.handle_error()
         logger.error(f"Error in birthday function: {e}")
 
 if __name__ == "__main__":
     logger.info("Birthday module has been started!")
+    BirthdayMetrics.start_metrics()
     while True:
         try:
             birthday()

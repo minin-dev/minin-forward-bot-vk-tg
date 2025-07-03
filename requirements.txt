@@ -3,5 +3,5 @@ python-telegram-bot
 pytz
 requests
 python-dotenv
-logging
 retrying
+prometheus-client
