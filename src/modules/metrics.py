@@ -10,10 +10,8 @@ class BirthdayMetricsClass:
         self.STATUS = Enum('status', 'Статус birthday-сервиса', states=['running', 'error'], registry=self.BIRTHDAY_REGISTRY)
         self.BIRTHDAY_SENT = Counter('birthday_sent', 'Количество отправленных поздравлений', registry=self.BIRTHDAY_REGISTRY)
 
-        self.ERROR_COUNT = Counter('event_errors_total', 'Ошибок при обработке событий',
-                        registry=self.BIRTHDAY_REGISTRY)
-        self.LAST_ERROR = Info('last_error', 'Последняя ошибка в обработке событий',
-                        registry=self.BIRTHDAY_REGISTRY)
+        self.ERROR_COUNT = Counter('errors_count', 'Ошибок при обработке событий', registry=self.BIRTHDAY_REGISTRY)
+        self.LAST_ERROR = Info('last_error', 'Последняя ошибка в обработке событий', registry=self.BIRTHDAY_REGISTRY)
 
         self.start_time = time.time()
 
@@ -63,10 +61,10 @@ class EventMetricsClass:
 
         self.EVENT_COUNT = Counter('event_processed_total', 'Обработано событий всего',
                         registry=self.EVENTS_REGISTRY)
-        self.METHOD_PROCESSING_TIME = Gauge('method_processing_seconds', 'Среднее время обработки метода',
+        self.METHOD_PROCESSING_TIME = Gauge('method_processing_average_time_seconds', 'Среднее время обработки метода',
                         ['method'],
                         registry=self.EVENTS_REGISTRY)
-        self.EVENT_PROCESSING_TIME = Gauge('event_processing_seconds', 'Среднее время обработки события',
+        self.EVENT_PROCESSING_TIME = Gauge('event_processing_average_time_seconds', 'Среднее время обработки события',
                         registry=self.EVENTS_REGISTRY)
         self.TG_MESSAGES_SENT = Counter('tg_messages_sent_total', 'Отправлено сообщений в Telegram',
                         registry=self.EVENTS_REGISTRY)
@@ -122,7 +120,7 @@ class EventMetricsClass:
                     self._timing_data[fname][0] += elapsed
                     self._timing_data[fname][1] += 1
                     avg = self._timing_data[fname][0] / self._timing_data[fname][1]
-                    self.METHOD_PROCESSING_TIME.labels(function=fname).set(avg)
+                    self.METHOD_PROCESSING_TIME.labels(method=fname).set(avg)
             return wrapper
         return decorator
 

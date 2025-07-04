@@ -79,7 +79,7 @@ def main():
                             EventMetrics._timing_data[fname][0] += elapsed
                             EventMetrics._timing_data[fname][1] += 1
                             avg = EventMetrics._timing_data[fname][0] / EventMetrics._timing_data[fname][1]
-                            EventMetrics.METHOD_PROCESSING_TIME.labels(function=fname).set(avg)
+                            EventMetrics.METHOD_PROCESSING_TIME.labels(method=fname).set(avg)
 
                     except Exception as e:
                         EventMetrics.handle_error(f"Error processing event: {e}")
