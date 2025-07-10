@@ -11,7 +11,7 @@ services:
       - ./.env:/app/.env
     environment:
       - TZ=Europe/Moscow
-    command: ["python", "-m", "src.modules.birthday.birthday_module"]
+    command: ["python", "-m", "src.service.birthday.birthday_module"]
     healthcheck:
       test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/data') else 1)"]
       interval: 30s
@@ -29,7 +29,7 @@ services:
       - ./.env:/app/.env
     environment:
       - TZ=Europe/Moscow
-    command: ["python", "-m", "src.modules.event.event_module"]
+    command: ["python", "-m", "src.service.event.event_module"]
     healthcheck:
       test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/data') else 1)"]
       interval: 30s

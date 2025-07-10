@@ -23,3 +23,5 @@ bd_dates = {
     '02-28': ['FirstName LastName', 'FirstName LastName'],
     '06-05': 'FirstName LastName',
     }
+
+groq_api_key = os.getenv('GROQ_API_KEY', '')

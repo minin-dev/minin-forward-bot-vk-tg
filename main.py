@@ -8,6 +8,9 @@ import sys
 import logging
 import threading
 
+# Ensure logs directory exists
+os.makedirs('logs', exist_ok=True)
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -19,18 +22,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-os.makedirs('logs', exist_ok=True)
-
 def run_birthday_module():
     try:
-        from src.modules.birthday.birthday_module import birthday
+        from src.service.birthday.birthday_module import birthday
         birthday()
     except Exception as e:
         logger.error(f"Error in birthday module: {e}")
 
 def run_event_module():
     try:
-        from src.modules.event.event_module import main as event_main
+        from src.service.event.event_module import main as event_main
         event_main()
     except Exception as e:
         logger.error(f"Error in event module: {e}")

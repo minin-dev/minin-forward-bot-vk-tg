@@ -1,6 +1,5 @@
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, Summary, Info, Enum, start_http_server
 import threading
-import logging
 import time
 
 class BirthdayMetricsClass:
