@@ -32,7 +32,7 @@ def main():
     try:
         vk_session = vk_api.VkApi(token=token['vk'])
         vk = vk_session.get_api()
-        longpoll = VkBotLongPoll(vk_session, chat_id['vk'])
+        longpoll = VkBotLongPoll(vk_session, "227054169")
 
         hello_message(datetime.datetime.now(), chat_id['tg'], chat_id['vk'])
 
@@ -41,7 +41,7 @@ def main():
         while True:
             for event in longpoll.listen():
                 try:
-                    if event.type == VkBotEventType.MESSAGE_NEW:
+                    if event.type == VkBotEventType.MESSAGE_NEW and str(event.obj.message.get('peer_id')) == str(chat_id['vk']):
                         start = time.time()
                         EventMetrics.EVENT_COUNT.inc()
                         message_counter += 1
@@ -98,7 +98,7 @@ def main():
             time.sleep(10)
             vk_session = vk_api.VkApi(token=token['vk'])
             vk = vk_session.get_api()
-            longpoll = VkBotLongPoll(vk_session, chat_id['vk'])
+            longpoll = VkBotLongPoll(vk_session, "227054169")
 
     except Exception as e:
         EventMetrics.handle_error(f"Fatal error in main loop: {e}")
