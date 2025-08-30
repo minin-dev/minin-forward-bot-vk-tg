@@ -18,3 +18,12 @@ class VkClient:
                     conversation_message_ids=event.obj['message']['conversation_message_id']
                 )['items'][0]
                 if event.obj['message']['peer_id'] == target_chat_id: yield obj
+
+    @staticmethod
+    def get_user_info(user_id: int) -> dict:
+        user = vk.users.get(user_ids=user_id, fields=['photo_100'])[0]
+        return {
+            "id": user['id'],
+            "name": f"{user.get('first_name', '')} {user.get('last_name', '')}".strip(),
+            "avatar": user.get('photo_100', '')
+        }
