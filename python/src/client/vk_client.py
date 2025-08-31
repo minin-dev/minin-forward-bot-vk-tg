@@ -21,9 +21,8 @@ class VkClient:
 
     @staticmethod
     def get_user_info(user_id: int) -> dict:
-        user = vk.users.get(user_ids=user_id, fields=['photo_100'])[0]
+        user = vk.users.get(user_ids=user_id)[0]
         return {
             "id": user['id'],
-            "name": f"{user.get('first_name', '')} {user.get('last_name', '')}".strip(),
-            "avatar": user.get('photo_100', '')
+            "name": f"{user.get('first_name', '')} {user.get('last_name', '')}".strip()
         }

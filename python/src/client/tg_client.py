@@ -1,13 +1,9 @@
-from logging import disable
-
 from aiogram import Bot
-from aiogram.client.default import DefaultBotProperties
 from config import settings
 
 class TgClient:
     def __init__(self):
         self.bot = Bot(token=settings.TG_BOT_TOKEN)
-        default_properties = DefaultBotProperties(parse_mode="HTML")
 
     async def send_text(self, chat_id: str,
                            text: str,
@@ -16,6 +12,7 @@ class TgClient:
         await self.bot.send_message(
             chat_id=chat_id,
             text=text,
+            parse_mode="HTML",
             **kwargs
         )
 
@@ -27,6 +24,7 @@ class TgClient:
         await self.bot.send_photo(
             chat_id=chat_id,
             photo=photo_url,
+            parse_mode="HTML",
             caption=caption,
             has_spoiler=has_spoiler,
             reply_markup=reply_markup
@@ -47,6 +45,7 @@ class TgClient:
             supports_streaming=supports_streaming,
             duration=duration,
             width=width, height=height,
+            parse_mode="HTML",
             reply_markup=reply_markup
         )
 
@@ -65,6 +64,7 @@ class TgClient:
             performer=performer,
             title=title,
             duration=duration,
+            parse_mode="HTML",
             reply_markup=reply_markup
         )
 
@@ -77,6 +77,7 @@ class TgClient:
             chat_id=chat_id,
             voice=voice_url,
             caption=caption,
+            parse_mode="HTML",
             duration=duration
         )
 
@@ -90,6 +91,7 @@ class TgClient:
             chat_id=chat_id,
             document=document_url,
             caption=caption,
+            parse_mode="HTML",
             disable_content_type_detection=disable_content_type_detection
         )
 
@@ -100,6 +102,7 @@ class TgClient:
         await self.bot.send_animation(
             chat_id=chat_id,
             animation=animation_url,
+            parse_mode="HTML",
             caption=caption
         )
 

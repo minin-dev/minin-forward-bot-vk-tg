@@ -1,8 +1,8 @@
 import asyncio
 from client.vk_client import VkClient
+from client.tg_client import TgClient
 from util.message_processor import VkMessageProcessor
 from util.send_message import Sender
-from util.send_message import TgClient
 
 async def main():
     vk_client = VkClient()
