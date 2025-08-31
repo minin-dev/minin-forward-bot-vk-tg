@@ -1,5 +1,13 @@
+# Copyright (c) 2023 [Eiztrips]
+#
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
+import json
+
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
+from src.util.logger.logger import PIMLogger
 from config import settings
 
 vk_session = vk_api.VkApi(token=settings.VK_BOT_TOKEN)
@@ -7,8 +15,11 @@ vk = vk_session.get_api()
 longpoll = VkBotLongPoll(vk_session, settings.VK_GROUP_ID)
 
 class VkClient:
-    @staticmethod
-    def listen():
+
+    def __init__(self):
+        self.logger = PIMLogger()
+
+    def listen(self):
         target_chat_id = int(settings.VK_CHAT_ID)
         
         for event in longpoll.listen():
@@ -17,6 +28,7 @@ class VkClient:
                     peer_id=event.obj['message']['peer_id'],
                     conversation_message_ids=event.obj['message']['conversation_message_id']
                 )['items'][0]
+                self.logger.event_message("NEW_VK_MESSAGE", json.dumps(obj, ensure_ascii=False, indent=4))
                 if event.obj['message']['peer_id'] == target_chat_id: yield obj
 
     @staticmethod

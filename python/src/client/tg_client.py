@@ -1,3 +1,8 @@
+# Copyright (c) 2023 [Eiztrips]
+#
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+
 from aiogram import Bot
 from config import settings
 
@@ -9,7 +14,7 @@ class TgClient:
                            text: str,
                            **kwargs
                            ):
-        await self.bot.send_message(
+        return await self.bot.send_message(
             chat_id=chat_id,
             text=text,
             parse_mode="HTML",
@@ -21,7 +26,7 @@ class TgClient:
                          caption: str = "",
                          has_spoiler: bool = False,
                          reply_markup = None):
-        await self.bot.send_photo(
+        return await self.bot.send_photo(
             chat_id=chat_id,
             photo=photo_url,
             parse_mode="HTML",
@@ -38,7 +43,7 @@ class TgClient:
                          width: int = None, height: int = None,
                          reply_markup = None
                          ):
-        await self.bot.send_video(
+        return await self.bot.send_video(
             chat_id=chat_id,
             video=video_url,
             caption=caption,
@@ -57,7 +62,7 @@ class TgClient:
                          duration: int = None,
                          reply_markup = None
                          ):
-        await self.bot.send_audio(
+        return await self.bot.send_audio(
             chat_id=chat_id,
             audio=audio_url,
             caption=caption,
@@ -73,7 +78,7 @@ class TgClient:
                          caption: str = "",
                          duration: int = None,
                          ):
-        await self.bot.send_voice(
+        return await self.bot.send_voice(
             chat_id=chat_id,
             voice=voice_url,
             caption=caption,
@@ -87,7 +92,7 @@ class TgClient:
                             caption: str = "",
                             disable_content_type_detection: bool = None
                             ):
-        await self.bot.send_document(
+        return await self.bot.send_document(
             chat_id=chat_id,
             document=document_url,
             caption=caption,
@@ -99,7 +104,7 @@ class TgClient:
                              animation_url: str,
                              caption: str = ""
                              ):
-        await self.bot.send_animation(
+        return await self.bot.send_animation(
             chat_id=chat_id,
             animation=animation_url,
             parse_mode="HTML",
@@ -107,7 +112,7 @@ class TgClient:
         )
 
     async def send_media_group(self, chat_id: str, media: list):
-        await self.bot.send_media_group(
+        return await self.bot.send_media_group(
             chat_id=chat_id,
             media=media
         )
