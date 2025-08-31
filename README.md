@@ -10,9 +10,6 @@
 [![Telegram](https://img.shields.io/badge/Telegram-Bot_API-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://core.telegram.org/bots)
 [![Aiogram](https://img.shields.io/badge/Aiogram-Framework-00BBFF?style=for-the-badge)](https://docs.aiogram.dev/)
 
-[![GitHub stars](https://img.shields.io/github/stars/Eiztrips/vk-tg-forwarder.svg?style=social&label=Star&maxAge=2592000)]([https://GitHub.com/Eiztrips/vk-tg-forwarder](https://github.com/Eiztrips/PIM_VK_to_TG/stargazers/)
-[![GitHub forks](https://img.shields.io/github/forks/Eiztrips/vk-tg-forwarder.svg?style=social&label=Fork&maxAge=2592000)](https://github.com/Eiztrips/PIM_VK_to_TG/network/)
-
 **🌉 Мощный мост между VK и Telegram**
 
 [📖 Описание](#-описание) • 
