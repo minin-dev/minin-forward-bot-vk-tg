@@ -5,7 +5,7 @@
 
 import time
 
-from config import settings
+from src.config import settings
 from aiogram.types import InputMediaPhoto, InputMediaDocument, Message
 from src.util.logger.logger import PIMLogger
 

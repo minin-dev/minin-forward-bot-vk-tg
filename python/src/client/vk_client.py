@@ -8,7 +8,7 @@ import json
 import vk_api
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from src.util.logger.logger import PIMLogger
-from config import settings
+from src.config import settings
 
 vk_session = vk_api.VkApi(token=settings.VK_BOT_TOKEN)
 vk = vk_session.get_api()

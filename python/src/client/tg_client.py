@@ -4,7 +4,7 @@
 # https://opensource.org/licenses/MIT
 
 from aiogram import Bot
-from config import settings
+from src.config import settings
 
 class TgClient:
     def __init__(self):
