@@ -20,11 +20,17 @@ class Sender:
     async def send_message(self, messages: list) -> None:
         message_response = []
         for message in messages:
-            if message.get("from_id") is None: continue
-            message_data = message['data']
-            user = VkClient.get_user_info(message.get("from_id"))
-            if message.get("forwarded", False): first_message = f"<blockquote>Пересланное сообщение от: <b>{user.get('name')}</b> </blockquote>\n\n"
-            else: first_message = '<blockquote><b>' + user.get("name") + '</b></blockquote>' + "\n\n"
+            if not message.get("from_id"): continue
+
+            username = VkClient.get_user_info(message["from_id"]).get("name", "Неизвестный")
+
+            first_message = (
+                f"<blockquote>{'Пересланное сообщение от: ' if message.get('forwarded') else ''}"
+                f"<b>{username}</b></blockquote>\n\n"
+            )
+
+            message_data = message["data"]
+
             if message['type'] == 'text':
                 message_response.append(await self.tg_client.send_text(
                     chat_id=settings.TG_CHAT_ID,
@@ -136,12 +142,13 @@ class Sender:
                     text=first_message + f"<blockquote>Опрос: <b>{message_data.get('question', 'Без названия')}</b></blockquote>\n\n" +
                          "\n".join([f"• {option.get('text', '')} — {option.get('votes', 0)} голосов" for option in message_data.get('options', [])])
                 ))
+
         message_response.append(await self.tg_client.send_text(
             chat_id=settings.TG_CHAT_ID,
             text=f'<tg-spoiler><b>КОНЕЦ СООБЩЕНИЯ - {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}</b></tg-spoiler>'
         ))
-        c = 0
-        for response in message_response:
-            c += 1
-            self.logger.send_message(f"SENT_TO_TG [{c}]",  str(response))
+
+        for c, response in enumerate(message_response, start=1):
+            self.logger.message(f"SENT_TO_TG [{c}]", str(response))
+
         print(self.logger.terminal_cap_generator())

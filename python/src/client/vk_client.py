@@ -28,7 +28,7 @@ class VkClient:
                     peer_id=event.obj['message']['peer_id'],
                     conversation_message_ids=event.obj['message']['conversation_message_id']
                 )['items'][0]
-                self.logger.event_message("NEW_VK_MESSAGE", json.dumps(obj, ensure_ascii=False, indent=4))
+                self.logger.message("NEW_VK_MESSAGE", json.dumps(obj, ensure_ascii=False, indent=4))
                 if event.obj['message']['peer_id'] == target_chat_id: yield obj
 
     @staticmethod
