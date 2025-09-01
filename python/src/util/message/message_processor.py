@@ -132,6 +132,9 @@ class VkMessageProcessor:
                             "forwarded": data.get('forwarded', False),
                             "data": {"url": poll_url, "question": attachment['poll'].get('question', '')}
                         })
+                    elif attachment['type'] == 'link':
+                        MessageQueue.clear()
+                        break
             if 'text' in data and data['text'].strip():
                 if not text_has_been_used:
                     MessageQueue.append({
