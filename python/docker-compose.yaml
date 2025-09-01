@@ -1,0 +1,11 @@
+version: '3.8'
+services:
+  pim-25:
+    build: .
+    env_file:
+      - .env
+    restart: unless-stopped
+    volumes:
+      - ./:/app
+    environment:
+      - PYTHONPATH=/app
