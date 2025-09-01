@@ -31,21 +31,27 @@ class Sender:
 
             message_data = message["data"]
 
+            # TODO: Add more types & clean up code
+
             if message['type'] == 'text':
-                message_response.append(await self.tg_client.send_text(
-                    chat_id=settings.TG_CHAT_ID,
-                    text=first_message + '<blockquote>' + message_data['text'] + '</blockquote>'
-                ))
+                message_response.append(
+                    await self.tg_client.send_text(
+                        chat_id=settings.TG_CHAT_ID,
+                        text=self.__format_text_message(first_message, message_data['text'])
+                    )
+                )
             elif message['type'] == 'photo_group':
                 for idx, item in enumerate(message_data['media']):
                     if idx == 0 and message_data.get('caption', ""):
                         item['caption'] = first_message + '<blockquote>' + message_data['caption'] + '</blockquote>'
                         item['parse_mode'] = 'HTML'
+
                 media = [
                     InputMediaPhoto(
                         media=item['url'],
                         caption=item.get('caption', None),
-                        parse_mode=item.get('parse_mode', None))
+                        parse_mode=item.get('parse_mode', None)
+                    )
                     for item in message_data['media']
                 ]
 
@@ -143,12 +149,10 @@ class Sender:
                          "\n".join([f"• {option.get('text', '')} — {option.get('votes', 0)} голосов" for option in message_data.get('options', [])])
                 ))
 
-        message_response.append(await self.tg_client.send_text(
-            chat_id=settings.TG_CHAT_ID,
-            text=f'<tg-spoiler><b>КОНЕЦ СООБЩЕНИЯ - {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}</b></tg-spoiler>'
-        ))
-
         for c, response in enumerate(message_response, start=1):
             self.logger.message(f"SENT_TO_TG [{c}]", str(response))
 
         print(self.logger.terminal_cap_generator())
+
+    def __format_text_message(self, first_message, message: dict) -> str:
+        return f"{first_message}<blockquote>{message}</blockquote>"
