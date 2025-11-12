@@ -115,7 +115,6 @@ class TgClient:
         return await self.bot.send_media_group(
             chat_id=chat_id,
             media=media,
-            parse_mode="HTML"
         )
 
     # TODO: add more methods as needed, e.g., send_sticker, send_location, etc and edit methods.
