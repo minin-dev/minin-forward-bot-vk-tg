@@ -29,5 +29,9 @@ async def main():
     finally:
         await tg_client.bot.session.close()
 
+async def birthday_module():
+    # Placeholder for future birthday module implementation
+    pass
+
 if __name__ == "__main__":
     asyncio.run(main())
