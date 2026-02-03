@@ -123,7 +123,7 @@ func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-func runCommand(args ...string) (string, error) {
+var runCommand = func(args ...string) (string, error) {
 	cmd := exec.Command("docker", args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
