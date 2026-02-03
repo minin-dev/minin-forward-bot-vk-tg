@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  dashboard:
+    build: ./dashboard
+    container_name: minin-dashboard
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./dashboard/clients.json:/app/clients.json
+    networks:
+      - minin-network
+
+  bot-base-image:
+    build: ./client
+    image: minin-bot-client:latest
+    entrypoint: ["true"]
+    restart: "no"
+    networks:
+      - minin-network
+
+networks:
+  minin-network:
+    name: minin-bot-network
+    driver: bridge

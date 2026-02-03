@@ -49,3 +49,5 @@ dist/
 # Other
 resourse/
 birthdays.json
+sdk/
+dashboard/clients.json

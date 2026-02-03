@@ -1,0 +1,168 @@
+:root {
+    --color-primary-dark: #3E2B2E;
+    --color-primary-light: #EBE5D9;
+    --color-secondary-grey: #707373;
+    --color-secondary-green: #05664A;
+    --color-secondary-beige: #6E6159;
+
+    --bg-color: var(--color-primary-light);
+    --text-color: var(--color-primary-dark);
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background-color: var(--color-primary-dark);
+    color: var(--color-primary-light);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+main {
+    flex: 1;
+    padding: 2rem;
+    overflow-y: auto;
+}
+
+/* Login Form */
+#login-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+.card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    max-width: 400px;
+    width: 100%;
+}
+
+input, button {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+    padding: 0.8rem;
+    border: 1px solid var(--color-secondary-grey);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: var(--color-secondary-green);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background-color: #04523B;
+}
+
+button.secondary {
+    background-color: var(--color-secondary-grey);
+}
+
+button.danger {
+    background-color: #d9534f;
+}
+
+/* Dashboard Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.client-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border-left: 5px solid var(--color-secondary-grey);
+}
+
+.client-card.running {
+    border-left-color: var(--color-secondary-green);
+}
+
+.client-card.stopped {
+    border-left-color: var(--color-primary-dark);
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: white;
+    background: var(--color-secondary-grey);
+}
+.status-badge.running { background: var(--color-secondary-green); }
+.status-badge.stopped { background: var(--color-primary-dark); }
+
+.stats {
+    font-family: monospace;
+    font-size: 0.9rem;
+    color: var(--color-secondary-beige);
+    margin: 0.5rem 0;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.actions button {
+    width: auto;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.env-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.env-row input {
+    margin-bottom: 0;
+}
