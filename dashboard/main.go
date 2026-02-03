@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -18,11 +19,13 @@ import (
 
 // --- Configuration ---
 const (
-	Port        = ":8080"
-	AdminUser   = "admin"
-	AdminPass   = "admin"
-	ImageName   = "minin-bot-client:latest"
-	NetworkName = "minin-bot-network"
+	Port             = ":8080"
+	AdminUser        = "admin"
+	AdminPass        = "admin"
+	ImageName        = "minin-bot-client:latest"
+	NetworkName      = "minin-bot-network"
+	MaxLoginAttempts = 5
+	BlockDuration    = 15 * time.Minute
 )
 
 // --- Structs ---
@@ -43,8 +46,11 @@ type Response struct {
 
 // --- Store ---
 var (
-	clientsFile = "clients.json"
-	clientsLock sync.RWMutex
+	clientsFile   = "clients.json"
+	clientsLock   sync.RWMutex
+	loginAttempts = make(map[string]int)
+	blockedIPs    = make(map[string]time.Time)
+	loginLock     sync.Mutex
 )
 
 // --- Helpers ---
@@ -60,14 +66,59 @@ func errorResponse(w http.ResponseWriter, msg string, code int) {
 	json.NewEncoder(w).Encode(Response{Success: false, Error: msg})
 }
 
+func getIP(r *http.Request) string {
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+	if comma := strings.Index(ip, ","); comma != -1 {
+		ip = ip[:comma]
+	}
+	host, _, err := net.SplitHostPort(ip)
+	if err == nil {
+		return host
+	}
+	return strings.TrimSpace(ip)
+}
+
 func authMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ip := getIP(r)
+
+		loginLock.Lock()
+		if blockTime, ok := blockedIPs[ip]; ok {
+			if time.Now().Before(blockTime) {
+				loginLock.Unlock()
+				errorResponse(w, "Too many login attempts. Please try again later.", http.StatusTooManyRequests)
+				return
+			}
+			delete(blockedIPs, ip)
+			delete(loginAttempts, ip)
+		}
+		loginLock.Unlock()
+
 		user, pass, ok := r.BasicAuth()
 		if !ok || user != AdminUser || pass != AdminPass {
+			loginLock.Lock()
+			loginAttempts[ip]++
+			if loginAttempts[ip] >= MaxLoginAttempts {
+				blockedIPs[ip] = time.Now().Add(BlockDuration)
+				log.Printf("Blocked IP %s due to too many failed login attempts", ip)
+			}
+			loginLock.Unlock()
+
 			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+			time.Sleep(1 * time.Second)
 			errorResponse(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
+
+		loginLock.Lock()
+		if loginAttempts[ip] > 0 {
+			delete(loginAttempts, ip)
+		}
+		loginLock.Unlock()
+
 		next(w, r)
 	}
 }
