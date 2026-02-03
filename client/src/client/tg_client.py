@@ -3,7 +3,8 @@
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
 
-from aiogram import Bot
+from aiogram import Bot #TODO: replace aiogram to aiohttp
+
 from src.config import settings
 
 class TgClient:

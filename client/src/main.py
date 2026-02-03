@@ -7,18 +7,19 @@ import asyncio
 import json
 from datetime import datetime
 from pathlib import Path
-from client.vk_client import VkClient
-from client.tg_client import TgClient
+
+from src.client import VkClient
+from src.client import TgClient
 from src.config import settings
-from src.util.message.message_processor import VkMessageProcessor
-from src.util.message.send_message import Sender
-from src.util.logger.logger import PIMLogger
+from src.util.message import VkMessageProcessor
+from src.util.message import TgMessageSender
+from src.util.logger import Logger
 
 async def main():
-    logger = PIMLogger()
+    logger = Logger()
     vk_client = VkClient()
     tg_client = TgClient()
-    sender = Sender(tg_client)
+    sender = TgMessageSender(tg_client)
     vk_message_processor = VkMessageProcessor()
 
     try:

@@ -10,5 +10,5 @@ COPY src/ ./src/
 
 ENV PYTHONPATH=/app
 
-CMD ["python", "src/main.py"]
+CMD ["python", "-m", "src.main"]
 

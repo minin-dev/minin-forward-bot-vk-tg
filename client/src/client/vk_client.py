@@ -6,8 +6,9 @@
 import json
 
 import vk_api
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-from src.util.logger.logger import PIMLogger
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType #TODO: replace vkapi to aiohttp
+
+from src.util.logger.logger import Logger
 from src.config import settings
 
 vk_session = vk_api.VkApi(token=settings.VK_BOT_TOKEN)
@@ -17,7 +18,7 @@ longpoll = VkBotLongPoll(vk_session, settings.VK_GROUP_ID)
 class VkClient:
 
     def __init__(self):
-        self.logger = PIMLogger()
+        self.logger = Logger()
 
     def listen(self):
         target_chat_id = int(settings.VK_CHAT_ID)

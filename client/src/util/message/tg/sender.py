@@ -5,17 +5,20 @@
 
 import time
 
-from src.config import settings
-from aiogram.types import InputMediaPhoto, InputMediaDocument, Message
-from src.util.logger.logger import PIMLogger
+from aiogram.types import (
+    InputMediaPhoto,
+    InputMediaDocument,
+    Message
+)
 
-from src.client.vk_client import VkClient
+from src.util.logger import Logger
+from src.client import VkClient
+from src import settings
 
-
-class Sender:
+class TgMessageSender:
     def __init__(self, tg_client):
         self.tg_client = tg_client
-        self.logger = PIMLogger()
+        self.logger = Logger()
 
     async def send_message(self, messages: list) -> None:
         message_response = []

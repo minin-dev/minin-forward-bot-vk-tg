@@ -5,7 +5,7 @@
 
 import random
 
-class PIMLogger():
+class Logger():
 
     dev_logo ="""
 ██████╗░██╗███╗░░░███╗░░░░░░░░░░██████╗░███████╗
