@@ -7,9 +7,9 @@ from aiogram import Bot #TODO: replace aiogram to aiohttp
 
 from src.config import settings
 
-class TgClient:
-    def __init__(self):
-        self.bot = Bot(token=settings.TG_BOT_TOKEN)
+class TgSender:
+    def __init__(self, bot: Bot):
+        self.bot = bot
 
     async def send_text(self, chat_id: str,
                            text: str,

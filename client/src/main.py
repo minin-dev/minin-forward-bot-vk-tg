@@ -12,14 +12,14 @@ from src.client import VkClient
 from src.client import TgClient
 from src.config import settings
 from src.util.message import VkMessageProcessor
-from src.util.message import TgMessageSender
+from src.util.message import TgMessageProcessor
 from src.util.logger import Logger
 
 async def main():
     logger = Logger()
     vk_client = VkClient()
     tg_client = TgClient()
-    sender = TgMessageSender(tg_client)
+    tg_message_processor = TgMessageProcessor(tg_client, vk_client)
     vk_message_processor = VkMessageProcessor()
 
     try:
@@ -28,8 +28,8 @@ async def main():
             tg_chat_id=settings.TG_CHAT_ID,
             vk_chat_id=settings.VK_CHAT_ID
         )
-        for message in vk_client.listen():
-            await sender.send_message(vk_message_processor.process_message(message))
+        for message in vk_client.listener.listen():
+            await tg_message_processor.send_message(vk_message_processor.process_message(message))
     finally:
         await tg_client.bot.session.close()
 
@@ -50,7 +50,7 @@ async def birthday_module():
             if birth_str == today_str:
                 age = today.year - birth_date.year
                 message = f"🎉 Сегодня день рождения у {person['name']}! Исполняется {age} лет!"
-                await tg_client.send_text(chat_id=settings.TG_CHAT_ID, text=message)
+                await tg_client.sender.send_text(chat_id=settings.TG_CHAT_ID, text=message)
     finally:
         await tg_client.bot.session.close()
 

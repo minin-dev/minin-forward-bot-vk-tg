@@ -5,7 +5,7 @@
 
 import random
 
-class Logger():
+class Logger:
 
     dev_logo ="""
 ██████╗░██╗███╗░░░███╗░░░░░░░░░░██████╗░███████╗

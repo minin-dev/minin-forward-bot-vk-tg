@@ -4,6 +4,6 @@
 # https://opensource.org/licenses/MIT
 
 from .vk.processor import VkMessageProcessor
-from .tg.sender import TgMessageSender
+from .tg.processor import TgMessageProcessor
 
-__all__ = ["VkMessageProcessor", "TgMessageSender"]
+__all__ = ["VkMessageProcessor", "TgMessageProcessor"]

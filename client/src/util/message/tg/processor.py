@@ -13,11 +13,12 @@ from aiogram.types import (
 
 from src.util.logger import Logger
 from src.client import VkClient
-from src import settings
+from src.config import settings
 
-class TgMessageSender:
-    def __init__(self, tg_client):
+class TgMessageProcessor:
+    def __init__(self, tg_client, vk_client: VkClient):
         self.tg_client = tg_client
+        self.vk_client = vk_client
         self.logger = Logger()
 
     async def send_message(self, messages: list) -> None:
@@ -25,7 +26,7 @@ class TgMessageSender:
         for message in messages:
             if not message.get("from_id"): continue
 
-            username = VkClient.get_user_info(message["from_id"]).get("name", "Неизвестный")
+            username = self.vk_client.get_user_info(message["from_id"]).get("name", "Неизвестный")
 
             first_message = (
                 f"<blockquote>{'Пересланное сообщение от: ' if message.get('forwarded') else ''}"
@@ -38,7 +39,7 @@ class TgMessageSender:
 
             if message['type'] == 'text':
                 message_response.append(
-                    await self.tg_client.send_text(
+                    await self.tg_client.sender.send_text(
                         chat_id=settings.TG_CHAT_ID,
                         text=self.__format_text_message(first_message, message_data['text'])
                     )
@@ -58,7 +59,7 @@ class TgMessageSender:
                     for item in message_data['media']
                 ]
 
-                message_response.append(await self.tg_client.send_media_group(
+                message_response.append(await self.tg_client.sender.send_media_group(
                     chat_id=settings.TG_CHAT_ID,
                     media=media
                 ))
@@ -68,7 +69,7 @@ class TgMessageSender:
                         item['caption'] = first_message + '<blockquote>' + message_data['caption'] + '</blockquote>'
                     else:
                         item['caption'] = '<blockquote>' + item.get('title', '') + '</blockquote>'
-                    message_response.append(await self.tg_client.send_text(
+                    message_response.append(await self.tg_client.sender.send_text(
                         chat_id=settings.TG_CHAT_ID,
                         text=item['caption'] + f"<blockquote><a href='{item['url']}'>✘ ДЛЯ ПРОСМОТРА ВИДЕО, НАЖМИТИ СЮДА!</a></blockquote>"
                     ))
@@ -79,7 +80,7 @@ class TgMessageSender:
                         item['caption'] = first_message + '<blockquote>' + message_data['caption'] + '</blockquote>'
                     media.append(InputMediaDocument(media=item['url'], caption=item.get('caption', None)))
                 try:
-                    message_response.append(await self.tg_client.send_media_group(
+                    message_response.append(await self.tg_client.sender.send_media_group(
                         chat_id=settings.TG_CHAT_ID,
                         media=media
                     ))
@@ -105,19 +106,19 @@ class TgMessageSender:
                                 f'<blockquote><b> Прилепленные документы </b></blockquote>')
 
                         keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-                        message_response.append(await self.tg_client.send_text(
+                        message_response.append(await self.tg_client.sender.send_text(
                             chat_id=settings.TG_CHAT_ID,
                             text=text,
                             reply_markup=keyboard
                         ))
             elif message['type'] == 'photo':
-                message_response.append(await self.tg_client.send_photo(
+                message_response.append(await self.tg_client.sender.send_photo(
                     chat_id=settings.TG_CHAT_ID,
                     photo_url=message_data['url'],
                     caption=first_message + '<blockquote>' + message_data.get('caption', "") + '</blockquote>'
                 ))
             elif message['type'] == 'voice':
-                message_response.append(await self.tg_client.send_voice(
+                message_response.append(await self.tg_client.sender.send_voice(
                     chat_id=settings.TG_CHAT_ID,
                     voice_url=message_data['url'],
                     caption=first_message + '<blockquote>' + message_data.get('caption', "") + '</blockquote>',
@@ -126,7 +127,7 @@ class TgMessageSender:
             elif message['type'] == 'audio':
                 caption = '<blockquote>' + message_data.get('caption', "") + '</blockquote>'
                 if caption != "": caption = first_message + caption
-                message_response.append(await self.tg_client.send_audio(
+                message_response.append(await self.tg_client.sender.send_audio(
                     chat_id=settings.TG_CHAT_ID,
                     audio_url=message_data['url'],
                     caption=caption,
@@ -135,18 +136,18 @@ class TgMessageSender:
                     duration=message_data.get('duration', None)
                 ))
             elif message['type'] == 'sticker':
-                message_response.append(await self.tg_client.send_photo(
+                message_response.append(await self.tg_client.sender.send_photo(
                     chat_id=settings.TG_CHAT_ID,
                     photo_url=message_data['url'],
                     caption=first_message
                 ))
             elif message['type'] == 'wall':
-                message_response.append(await self.tg_client.send_text(
+                message_response.append(await self.tg_client.sender.send_text(
                     chat_id=settings.TG_CHAT_ID,
                     text=first_message + f"<blockquote><a href='{message_data['url']}'>✘ ДЛЯ ПРОСМОТРА ВСЕЙ ЗАПИСИ, НАЖМИТИ СЮДА!</a></blockquote>"
                 ))
             elif message['type'] == 'poll':
-                message_response.append(await self.tg_client.send_text(
+                message_response.append(await self.tg_client.sender.send_text(
                     chat_id=settings.TG_CHAT_ID,
                     text=first_message + f"<blockquote>Опрос: <b>{message_data.get('question', 'Без названия')}</b></blockquote>\n\n" +
                          "\n".join([f"• {option.get('text', '')} — {option.get('votes', 0)} голосов" for option in message_data.get('options', [])])
