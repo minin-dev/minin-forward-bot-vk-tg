@@ -2,11 +2,19 @@
 #
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT
+from client import VkClient
+from util.logger import Logger
+
 
 class VkMessageProcessor:
+    def __init__(self, tg_client, vk_client: VkClient):
+        self.tg_client = tg_client
+        self.vk_client = vk_client
+        self.logger = Logger()
+
     def process_message(self, message: dict) -> list:
         MessageQueue, VkMessageQueue = ([{'type': 'text_position'}],
-                                        [message] + self.get_forwarded_messages(message, parent_from_id=message.get('from_id')))
+                                        [message] + self.__get_forwarded_messages(message, parent_from_id=message.get('from_id')))
         for data in VkMessageQueue:
             text_has_been_used = False
             if 'attachments' in data:
@@ -148,7 +156,7 @@ class VkMessageProcessor:
 
         return MessageQueue
 
-    def get_forwarded_messages(self, data: dict, parent_from_id=None) -> list:
+    def __get_forwarded_messages(self, data: dict, parent_from_id=None) -> list:
         messages = []
         if 'fwd_messages' in data and data['fwd_messages']:
             for msg in data['fwd_messages']:
@@ -156,5 +164,5 @@ class VkMessageProcessor:
                 if 'from_id' not in msg and parent_from_id is not None:
                     msg['from_id'] = parent_from_id
                 messages.append(msg)
-                messages.extend(self.get_forwarded_messages(msg, parent_from_id=msg.get('from_id', parent_from_id)))
+                messages.extend(self.__get_forwarded_messages(msg, parent_from_id=msg.get('from_id', parent_from_id)))
         return messages

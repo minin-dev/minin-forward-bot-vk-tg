@@ -20,7 +20,7 @@ async def main():
     vk_client = VkClient()
     tg_client = TgClient()
     tg_message_processor = TgMessageProcessor(tg_client, vk_client)
-    vk_message_processor = VkMessageProcessor()
+    vk_message_processor = VkMessageProcessor(tg_client, vk_client)
 
     try:
         logger.start_message(
