@@ -24,139 +24,195 @@ class TgMessageProcessor:
     async def send_message(self, messages: list) -> None:
         message_response = []
         for message in messages:
-            if not message.get("from_id"): continue
+            if not message.get("from_id"):
+                continue
 
-            username = self.vk_client.get_user_info(message["from_id"]).get("name", "Неизвестный")
+            user_info = self.vk_client.get_user_info(message["from_id"])
+            username = user_info.get("name", "Неизвестный")
 
-            first_message = (
-                f"<blockquote>{'Пересланное сообщение от: ' if message.get('forwarded') else ''}"
-                f"<b>{username}</b></blockquote>\n\n"
-            )
-
+            header_text = self._create_header(username, message.get("forwarded", False))
             message_data = message["data"]
+            message_type = message["type"]
 
-            # TODO: Add more types & clean up code
+            response = await self._dispatch_message(message_type, message_data, header_text)
+            if response:
+                message_response.append(response)
 
-            if message['type'] == 'text':
-                message_response.append(
-                    await self.tg_client.sender.send_text(
-                        chat_id=settings.TG_CHAT_ID,
-                        text=self.__format_text_message(first_message, message_data['text'])
-                    )
-                )
-            elif message['type'] == 'photo_group':
-                for idx, item in enumerate(message_data['media']):
-                    if idx == 0 and message_data.get('caption', ""):
-                        item['caption'] = first_message + '<blockquote>' + message_data['caption'] + '</blockquote>'
-                        item['parse_mode'] = 'HTML'
-
-                media = [
-                    InputMediaPhoto(
-                        media=item['url'],
-                        caption=item.get('caption', None),
-                        parse_mode=item.get('parse_mode', None)
-                    )
-                    for item in message_data['media']
-                ]
-
-                message_response.append(await self.tg_client.sender.send_media_group(
-                    chat_id=settings.TG_CHAT_ID,
-                    media=media
-                ))
-            elif message['type'] == 'video_group':
-                for idx, item in enumerate(message_data['media']):
-                    if idx == 0 and message_data.get('caption', ""):
-                        item['caption'] = first_message + '<blockquote>' + message_data['caption'] + '</blockquote>'
-                    else:
-                        item['caption'] = '<blockquote>' + item.get('title', '') + '</blockquote>'
-                    message_response.append(await self.tg_client.sender.send_text(
-                        chat_id=settings.TG_CHAT_ID,
-                        text=item['caption'] + f"<blockquote><a href='{item['url']}'>✘ ДЛЯ ПРОСМОТРА ВИДЕО, НАЖМИТИ СЮДА!</a></blockquote>"
-                    ))
-            elif message['type'] == 'document_group':
-                media = []
-                for idx, item in enumerate(message_data['documents']):
-                    if idx == 0 and message_data.get('caption', ""):
-                        item['caption'] = first_message + '<blockquote>' + message_data['caption'] + '</blockquote>'
-                    media.append(InputMediaDocument(media=item['url'], caption=item.get('caption', None)))
-                try:
-                    message_response.append(await self.tg_client.sender.send_media_group(
-                        chat_id=settings.TG_CHAT_ID,
-                        media=media
-                    ))
-                except Exception:
-                    from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-                    buttons = []
-                    for doc in message_data.get('documents', []):
-                        buttons.append(
-                            [InlineKeyboardButton(
-                                text=doc.get("title", "Ссылка на документ"),
-                                url=doc.get("url")
-                            )]
-                        )
-
-                    if buttons:
-                        caption = message_data.get('caption', "")
-                        text = \
-                            (f'{first_message} '
-                             f'<blockquote>{caption}</blockquote>\n\n '
-                             f'<blockquote><b> Прилепленные документы </b></blockquote>') if caption != "" else \
-                            (f'{first_message} '
-                                f'<blockquote><b> Прилепленные документы </b></blockquote>')
-
-                        keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-                        message_response.append(await self.tg_client.sender.send_text(
-                            chat_id=settings.TG_CHAT_ID,
-                            text=text,
-                            reply_markup=keyboard
-                        ))
-            elif message['type'] == 'photo':
-                message_response.append(await self.tg_client.sender.send_photo(
-                    chat_id=settings.TG_CHAT_ID,
-                    photo_url=message_data['url'],
-                    caption=first_message + '<blockquote>' + message_data.get('caption', "") + '</blockquote>'
-                ))
-            elif message['type'] == 'voice':
-                message_response.append(await self.tg_client.sender.send_voice(
-                    chat_id=settings.TG_CHAT_ID,
-                    voice_url=message_data['url'],
-                    caption=first_message + '<blockquote>' + message_data.get('caption', "") + '</blockquote>',
-                    duration=message_data.get('duration', None)
-                ))
-            elif message['type'] == 'audio':
-                caption = '<blockquote>' + message_data.get('caption', "") + '</blockquote>'
-                if caption != "": caption = first_message + caption
-                message_response.append(await self.tg_client.sender.send_audio(
-                    chat_id=settings.TG_CHAT_ID,
-                    audio_url=message_data['url'],
-                    caption=caption,
-                    performer=message_data.get('performer', None),
-                    title=message_data.get('title', None),
-                    duration=message_data.get('duration', None)
-                ))
-            elif message['type'] == 'sticker':
-                message_response.append(await self.tg_client.sender.send_photo(
-                    chat_id=settings.TG_CHAT_ID,
-                    photo_url=message_data['url'],
-                    caption=first_message
-                ))
-            elif message['type'] == 'wall':
-                message_response.append(await self.tg_client.sender.send_text(
-                    chat_id=settings.TG_CHAT_ID,
-                    text=first_message + f"<blockquote><a href='{message_data['url']}'>✘ ДЛЯ ПРОСМОТРА ВСЕЙ ЗАПИСИ, НАЖМИТИ СЮДА!</a></blockquote>"
-                ))
-            elif message['type'] == 'poll':
-                message_response.append(await self.tg_client.sender.send_text(
-                    chat_id=settings.TG_CHAT_ID,
-                    text=first_message + f"<blockquote>Опрос: <b>{message_data.get('question', 'Без названия')}</b></blockquote>\n\n" +
-                         "\n".join([f"• {option.get('text', '')} — {option.get('votes', 0)} голосов" for option in message_data.get('options', [])])
-                ))
-
-        for c, response in enumerate(message_response, start=1):
-            self.logger.message(f"SENT_TO_TG [{c}]", str(response))
+        for i, response in enumerate(message_response, start=1):
+            self.logger.message(f"SENT_TO_TG [{i}]", str(response))
 
         print(self.logger.terminal_cap_generator())
 
-    def __format_text_message(self, first_message, message: dict) -> str:
-        return f"{first_message}<blockquote>{message}</blockquote>"
+    def _create_header(self, username: str, is_forwarded: bool) -> str:
+        prefix = 'Пересланное сообщение от: ' if is_forwarded else ''
+        return f"<blockquote>{prefix}<b>{username}</b></blockquote>\n\n"
+
+    async def _dispatch_message(self, msg_type: str, data: dict, header: str):
+        if msg_type == 'text':
+            return await self._handle_text(data, header)
+        elif msg_type == 'photo_group':
+            return await self._handle_photo_group(data, header)
+        elif msg_type == 'video_group':
+            return await self._handle_video_group(data, header)
+        elif msg_type == 'document_group':
+            return await self._handle_document_group(data, header)
+        elif msg_type == 'photo':
+            return await self._handle_photo(data, header)
+        elif msg_type == 'voice':
+            return await self._handle_voice(data, header)
+        elif msg_type == 'audio':
+            return await self._handle_audio(data, header)
+        elif msg_type == 'sticker':
+            return await self._handle_sticker(data, header)
+        elif msg_type == 'wall':
+            return await self._handle_wall(data, header)
+        elif msg_type == 'poll':
+            return await self._handle_poll(data, header)
+        return None
+
+    async def _handle_text(self, data: dict, header: str):
+        text = f"{header}<blockquote>{data['text']}</blockquote>"
+        return await self.tg_client.sender.send_text(
+            chat_id=settings.TG_CHAT_ID,
+            text=text
+        )
+
+    async def _handle_photo_group(self, data: dict, header: str):
+        media_group = []
+        for idx, item in enumerate(data['media']):
+            caption = None
+            if idx == 0 and data.get('caption'):
+                caption = f"{header}<blockquote>{data['caption']}</blockquote>"
+                item['parse_mode'] = 'HTML'
+
+            media_group.append(
+                InputMediaPhoto(
+                    media=item['url'],
+                    caption=caption or item.get('caption'),
+                    parse_mode=item.get('parse_mode')
+                )
+            )
+
+        return await self.tg_client.sender.send_media_group(
+            chat_id=settings.TG_CHAT_ID,
+            media=media_group
+        )
+
+    async def _handle_video_group(self, data: dict, header: str):
+        responses = []
+        for idx, item in enumerate(data['media']):
+            if idx == 0 and data.get('caption'):
+                base_caption = f"{header}<blockquote>{data['caption']}</blockquote>"
+            else:
+                base_caption = f"<blockquote>{item.get('title', '')}</blockquote>"
+
+            full_text = f"{base_caption}<blockquote><a href='{item['url']}'>✘ ДЛЯ ПРОСМОТРА ВИДЕО, НАЖМИТЕ СЮДА!</a></blockquote>"
+
+            resp = await self.tg_client.sender.send_text(
+                chat_id=settings.TG_CHAT_ID,
+                text=full_text
+            )
+            responses.append(resp)
+        return responses[-1] if responses else None
+
+    async def _handle_document_group(self, data: dict, header: str):
+        media_group = []
+        for idx, item in enumerate(data['documents']):
+            caption = None
+            if idx == 0 and data.get('caption'):
+                caption = f"{header}<blockquote>{data['caption']}</blockquote>"
+
+            media_group.append(
+                InputMediaDocument(
+                    media=item['url'],
+                    caption=caption
+                )
+            )
+
+        try:
+            return await self.tg_client.sender.send_media_group(
+                chat_id=settings.TG_CHAT_ID,
+                media=media_group
+            )
+        except Exception:
+            from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+            buttons = [
+                [InlineKeyboardButton(
+                    text=doc.get("title", "Ссылка на документ"),
+                    url=doc.get("url")
+                )] for doc in data.get('documents', [])
+            ]
+
+            caption = data.get('caption', "")
+            doc_header = "<blockquote><b> Прикрепленные документы </b></blockquote>"
+
+            if caption:
+                text = f"{header} <blockquote>{caption}</blockquote>\n\n {doc_header}"
+            else:
+                text = f"{header} {doc_header}"
+
+            if buttons:
+                keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+                return await self.tg_client.sender.send_text(
+                    chat_id=settings.TG_CHAT_ID,
+                    text=text,
+                    reply_markup=keyboard
+                )
+            return None
+
+    async def _handle_photo(self, data: dict, header: str):
+        caption = f"{header}<blockquote>{data.get('caption', '')}</blockquote>"
+        return await self.tg_client.sender.send_photo(
+            chat_id=settings.TG_CHAT_ID,
+            photo_url=data['url'],
+            caption=caption
+        )
+
+    async def _handle_voice(self, data: dict, header: str):
+        caption = f"{header}<blockquote>{data.get('caption', '')}</blockquote>"
+        return await self.tg_client.sender.send_voice(
+            chat_id=settings.TG_CHAT_ID,
+            voice_url=data['url'],
+            caption=caption,
+            duration=data.get('duration')
+        )
+
+    async def _handle_audio(self, data: dict, header: str):
+        raw_caption = data.get('caption', '')
+        caption = f"<blockquote>{raw_caption}</blockquote>"
+        if raw_caption:
+            caption = header + caption
+
+        return await self.tg_client.sender.send_audio(
+            chat_id=settings.TG_CHAT_ID,
+            audio_url=data['url'],
+            caption=caption,
+            performer=data.get('performer'),
+            title=data.get('title'),
+            duration=data.get('duration')
+        )
+
+    async def _handle_sticker(self, data: dict, header: str):
+        return await self.tg_client.sender.send_photo(
+            chat_id=settings.TG_CHAT_ID,
+            photo_url=data['url'],
+            caption=header
+        )
+
+    async def _handle_wall(self, data: dict, header: str):
+        text = f"{header}<blockquote><a href='{data['url']}'>✘ ДЛЯ ПРОСМОТРА ВСЕЙ ЗАПИСИ, НАЖМИТЕ СЮДА!</a></blockquote>"
+        return await self.tg_client.sender.send_text(
+            chat_id=settings.TG_CHAT_ID,
+            text=text
+        )
+
+    async def _handle_poll(self, data: dict, header: str):
+        options = "\n".join([f"• {opt.get('text', '')} — {opt.get('votes', 0)} голосов"
+                           for opt in data.get('options', [])])
+        text = (f"{header}<blockquote>Опрос: <b>{data.get('question', 'Без названия')}</b></blockquote>\n\n"
+                f"{options}")
+        return await self.tg_client.sender.send_text(
+            chat_id=settings.TG_CHAT_ID,
+            text=text
+        )
