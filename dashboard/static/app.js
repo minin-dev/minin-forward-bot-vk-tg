@@ -126,7 +126,7 @@ function renderClients() {
             `;
         } else {
             actionsHtml = `
-                <button onclick="clientAction('${c.id}', 'start')">Запуск</button>
+                <button onclick="clientAction('${c.id}', 'start')">▶️</button>
             `;
         }
 
@@ -138,9 +138,9 @@ function renderClients() {
             
             <div class="actions">
                 ${actionsHtml}
-                <button class="secondary" onclick="openLogs(clients.find(x => x.id === '${c.id}'))">Логи</button>
+                <button class="secondary" onclick="openLogs(clients.find(x => x.id === '${c.id}'))">📊</button>
                 <button class="secondary" onclick="editClient('${c.id}')">⚙️</button>
-                <button class="danger" onclick="clientAction('${c.id}', 'delete')">🗑️</button>
+                <button class="danger" onclick="clientAction('${c.id}', 'delete')">❌</button>
             </div>
         `;
         clientList.appendChild(div);
