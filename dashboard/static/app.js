@@ -138,6 +138,7 @@ function renderClients() {
             
             <div class="actions">
                 ${actionsHtml}
+                <button class="secondary" onclick="openLogs(clients.find(x => x.id === '${c.id}'))">Логи</button>
                 <button class="secondary" onclick="editClient('${c.id}')">⚙️</button>
                 <button class="danger" onclick="clientAction('${c.id}', 'delete')">🗑️</button>
             </div>
@@ -189,6 +190,18 @@ function addEnvRow(key, val) {
 function editClient(id) {
     const c = clients.find(x => x.id === id);
     if (c) openModal(c);
+}
+
+function openLogs(client) {
+    const logWindow = window.open('', '_blank');
+    logWindow.document.write(`
+        <html>
+            <head><title>Logs - ${client.name}</title></head>
+            <body>
+                <pre>${client.logs || 'No logs available'}</pre>
+            </body>
+        </html>
+    `);
 }
 
 function closeModal() {

@@ -36,6 +36,7 @@ type ClientConfig struct {
 	Status    string            `json:"status"`
 	Stats     string            `json:"stats"`
 	Container string            `json:"container_id,omitempty"`
+	Logs      string            `json:"logs,omitempty"`
 }
 
 type Response struct {
@@ -147,6 +148,11 @@ func getContainerStatus(name string) (string, string, string) {
 	return status, stats, strings.TrimSpace(idOut)
 }
 
+func getContainerLogs(name string) (string, error) {
+	out, err := runCommand("logs", "minin-client-"+name)
+	return out, err
+}
+
 func startClientContainer(c *ClientConfig) error {
 	runCommand("rm", "-f", "minin-client-"+c.ID)
 
@@ -188,6 +194,9 @@ func handleListClients(w http.ResponseWriter, r *http.Request) {
 		list[i].Status = s
 		list[i].Stats = stats
 		list[i].Container = cid
+
+		logs, _ := getContainerLogs(list[i].ID)
+		list[i].Logs = logs
 	}
 
 	jsonResponse(w, list)
