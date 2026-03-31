@@ -177,6 +177,22 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, "Logged in")
 }
 
+func handleLogs(w http.ResponseWriter, r *http.Request) {
+	id := r.URL.Query().Get("id")
+	if id == "" {
+		errorResponse(w, "Missing id", 400)
+		return
+	}
+
+	logs, err := getContainerLogs(id)
+	if err != nil {
+		errorResponse(w, "Failed to get logs: "+err.Error(), 500)
+		return
+	}
+
+	jsonResponse(w, logs)
+}
+
 func handleListClients(w http.ResponseWriter, r *http.Request) {
 	clientsLock.RLock()
 	defer clientsLock.RUnlock()
@@ -308,6 +324,7 @@ func main() {
 	mux.HandleFunc("/api/clients", authMiddleware(handleListClients))
 	mux.HandleFunc("/api/save", authMiddleware(handleSaveClient))
 	mux.HandleFunc("/api/action", authMiddleware(handleAction))
+	mux.HandleFunc("/api/logs", authMiddleware(handleLogs))
 
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/", fs)

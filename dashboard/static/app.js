@@ -138,7 +138,7 @@ function renderClients() {
             
             <div class="actions">
                 ${actionsHtml}
-                <button class="secondary" onclick="openLogs(clients.find(x => x.id === '${c.id}'))">📊</button>
+                <button class="secondary" onclick="openLogs('${c.id}')">📊</button>
                 <button class="secondary" onclick="editClient('${c.id}')">⚙️</button>
                 <button class="danger" onclick="clientAction('${c.id}', 'delete')">❌</button>
             </div>
@@ -192,16 +192,18 @@ function editClient(id) {
     if (c) openModal(c);
 }
 
-function openLogs(client) {
-    const logWindow = window.open('', '_blank');
-    logWindow.document.write(`
-        <html>
-            <head><title>Logs - ${client.name}</title></head>
-            <body>
-                <pre>${client.logs || 'No logs available'}</pre>
-            </body>
-        </html>
-    `);
+function openLogs(id) {
+    apiCall(`/logs?id=${id}`).then(res => {
+        const logWindow = window.open('', '_blank');
+        logWindow.document.write(`
+            <html>
+                <head><title>Logs - ${clients.find(c => c.id === id)?.name || 'Unknown'}</title></head>
+                <body>
+                    <pre>${res?.data || 'No logs available'}</pre>
+                </body>
+            </html>
+        `);
+    });
 }
 
 function closeModal() {
