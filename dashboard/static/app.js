@@ -195,14 +195,28 @@ function editClient(id) {
 function openLogs(id) {
     apiCall(`/logs?id=${id}`).then(res => {
         const logWindow = window.open('', '_blank');
+        let logs = res?.data || 'No logs available';
+         
+        if (typeof logs === 'string' && logs.length > 50000) {
+            logs = '... [Логи обрезаны для производительности. Показаны последние данные] ...\n\n' + logs.slice(-50000);
+        }
+
         logWindow.document.write(`
             <html>
-                <head><title>Logs - ${clients.find(c => c.id === id)?.name || 'Unknown'}</title></head>
+                <head>
+                    <title>Logs - ${clients.find(c => c.id === id)?.name || 'Unknown'}</title>
+                    <style>
+                        body { background: #120B1D; color: #A396BB; font-family: monospace; padding: 1rem; margin: 0; }
+                        pre { white-space: pre-wrap; word-wrap: break-word; font-size: 13px; }
+                    </style>
+                </head>
                 <body>
-                    <pre>${res?.data || 'No logs available'}</pre>
+                    <pre>${logs}</pre>
+                    <script>window.scrollTo(0, document.body.scrollHeight);</script>
                 </body>
             </html>
         `);
+        logWindow.document.close();
     });
 }
 
