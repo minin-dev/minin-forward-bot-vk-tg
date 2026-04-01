@@ -347,10 +347,9 @@ func main() {
 	mux.HandleFunc(ApiBase+"/action", authMiddleware(handleAction))
 	mux.HandleFunc(ApiBase+"/logs", authMiddleware(handleLogs))
 
-	// Serve config.js dynamically for the frontend
 	mux.HandleFunc("/config.js", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/javascript")
-		fmt.Fprintf(w, "const API_BASE = '%s';", ApiBase)
+		fmt.Fprintf(w, "const API_BASE = window.location.pathname.replace(/\\/$/, '') + '%s';", ApiBase)
 	})
 
 	fs := http.FileServer(http.Dir("./static"))
