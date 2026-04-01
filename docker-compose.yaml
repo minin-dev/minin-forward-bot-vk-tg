@@ -5,8 +5,10 @@ services:
     build: ./dashboard
     container_name: minin-dashboard
     restart: unless-stopped
+    env_file:
+      - .env
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:${PORT:-8080}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./dashboard/clients.json:/app/clients.json

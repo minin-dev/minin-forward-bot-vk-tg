@@ -18,15 +18,23 @@ import (
 )
 
 // --- Configuration ---
-const (
-	Port             = ":8080"
-	AdminUser        = "admin"
-	AdminPass        = "admin"
-	ImageName        = "minin-bot-client:latest"
-	NetworkName      = "minin-bot-network"
+var (
+	Port             = getEnv("PORT", "8080")
+	AdminUser        = getEnv("ADMIN_USERNAME", "admin")
+	AdminPass        = getEnv("ADMIN_PASSWORD", "admin")
+	ApiBase          = getEnv("API_BASE", "/api")
+	ImageName        = getEnv("IMAGE_NAME", "minin-bot-client:latest")
+	NetworkName      = getEnv("NETWORK_NAME", "minin-bot-network")
 	MaxLoginAttempts = 5
 	BlockDuration    = 15 * time.Minute
 )
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
 
 // --- Structs ---
 type ClientConfig struct {
@@ -148,9 +156,23 @@ func getContainerStatus(name string) (string, string, string) {
 	return status, stats, strings.TrimSpace(idOut)
 }
 
-func getContainerLogs(name string) (string, error) {
-	out, err := runCommand("logs", "minin-client-"+name)
-	return out, err
+func getContainerLogs(name string, tail string, since string) (string, error) {
+	args := []string{"logs", "-t"} // -t adds timestamps
+	if since != "" {
+		args = append(args, "--since", since)
+	}
+	if tail != "" {
+		args = append(args, "--tail", tail)
+	} else if since == "" {
+		args = append(args, "--tail", "100")
+	}
+	args = append(args, "minin-client-"+name)
+	
+	out, err := runCommand(args...)
+	if err != nil {
+		return "", err
+	}
+	return out, nil
 }
 
 func startClientContainer(c *ClientConfig) error {
@@ -179,12 +201,14 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 func handleLogs(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
+	tail := r.URL.Query().Get("tail")
+	since := r.URL.Query().Get("since")
 	if id == "" {
 		errorResponse(w, "Missing id", 400)
 		return
 	}
 
-	logs, err := getContainerLogs(id)
+	logs, err := getContainerLogs(id, tail, since)
 	if err != nil {
 		errorResponse(w, "Failed to get logs: "+err.Error(), 500)
 		return
@@ -210,9 +234,6 @@ func handleListClients(w http.ResponseWriter, r *http.Request) {
 		list[i].Status = s
 		list[i].Stats = stats
 		list[i].Container = cid
-
-		logs, _ := getContainerLogs(list[i].ID)
-		list[i].Logs = logs
 	}
 
 	jsonResponse(w, list)
@@ -320,15 +341,26 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/login", authMiddleware(handleLogin))
-	mux.HandleFunc("/api/clients", authMiddleware(handleListClients))
-	mux.HandleFunc("/api/save", authMiddleware(handleSaveClient))
-	mux.HandleFunc("/api/action", authMiddleware(handleAction))
-	mux.HandleFunc("/api/logs", authMiddleware(handleLogs))
+	mux.HandleFunc(ApiBase+"/login", authMiddleware(handleLogin))
+	mux.HandleFunc(ApiBase+"/clients", authMiddleware(handleListClients))
+	mux.HandleFunc(ApiBase+"/save", authMiddleware(handleSaveClient))
+	mux.HandleFunc(ApiBase+"/action", authMiddleware(handleAction))
+	mux.HandleFunc(ApiBase+"/logs", authMiddleware(handleLogs))
+
+	// Serve config.js dynamically for the frontend
+	mux.HandleFunc("/config.js", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/javascript")
+		fmt.Fprintf(w, "const API_BASE = '%s';", ApiBase)
+	})
 
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/", fs)
 
-	log.Printf("Starting dashboard on %s", Port)
-	log.Fatal(http.ListenAndServe(Port, mux))
+	portStr := Port
+	if !strings.HasPrefix(portStr, ":") {
+		portStr = ":" + portStr
+	}
+
+	log.Printf("Starting dashboard on %s", portStr)
+	log.Fatal(http.ListenAndServe(portStr, mux))
 }

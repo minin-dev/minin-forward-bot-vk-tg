@@ -50,4 +50,5 @@ dist/
 resourse/
 birthdays.json
 sdk/
+dashboard/clients.json.env
 dashboard/clients.json

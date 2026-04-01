@@ -1,4 +1,4 @@
-const API_BASE = '/api';
+// API_BASE is now provided by /config.js script
 const DEFAULT_ENV_KEYS = [
     'TG_BOT_TOKEN', 'VK_BOT_TOKEN', 'TG_CHAT_ID', 'VK_CHAT_ID', 'VK_GROUP_ID'
 ];
@@ -193,13 +193,22 @@ function editClient(id) {
 }
 
 function openLogs(id) {
-    apiCall(`/logs?id=${id}`).then(res => {
+    const input = prompt("Укажите как собрать логи:\n- Пусто: последние 100 строк\n- 'all': все логи\n- Число (напр. '500'): столько последних строк\n- Время (напр. '24h', '30m'): за указанное время", "");
+    if (input === null) return; // user cancelled
+
+    let query = `/logs?id=${id}`;
+    const val = input.trim();
+    if (val === 'all') {
+        query += '&tail=all';
+    } else if (/^\d+$/.test(val)) {
+        query += `&tail=${val}`;
+    } else if (val !== '') {
+        query += `&since=${val}`; // '24h', '30m', etc
+    }
+
+    apiCall(query).then(res => {
         const logWindow = window.open('', '_blank');
         let logs = res?.data || 'No logs available';
-         
-        if (typeof logs === 'string' && logs.length > 50000) {
-            logs = '... [Логи обрезаны для производительности. Показаны последние данные] ...\n\n' + logs.slice(-50000);
-        }
 
         logWindow.document.write(`
             <html>
